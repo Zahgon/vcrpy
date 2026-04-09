@@ -54,13 +54,7 @@ class CassetteContextDecorator:
         self.__cassette = None
 
     def _patch_generator(self, cassette):
-        with contextlib.ExitStack() as exit_stack:
-            for patcher in CassettePatcherBuilder(cassette).build():
-                exit_stack.enter_context(patcher)
-            log_format = "{action} context for cassette at {path}."
-            log.debug(log_format.format(action="Entering", path=cassette._path))
-            yield cassette
-            log.debug(log_format.format(action="Exiting", path=cassette._path))
+        pass
 
     def __enter__(self):
         # This assertion is here to prevent the dangerous behavior
@@ -107,44 +101,23 @@ class CassetteContextDecorator:
         return type(self)(self.cls, args_getter)._execute_function(function, args, kwargs)
 
     def _execute_function(self, function, args, kwargs):
-        def handle_function(cassette):
-            if cassette.inject:
-                return function(cassette, *args, **kwargs)
-            else:
-                return function(*args, **kwargs)
-
-        if iscoroutinefunction(function):
-            return handle_coroutine(vcr=self, fn=handle_function)
-        if inspect.isgeneratorfunction(function):
-            return self._handle_generator(fn=handle_function)
-
-        return self._handle_function(fn=handle_function)
+        pass
 
     def _handle_generator(self, fn):
         """Wraps a generator so that we're inside the cassette context for the
         duration of the generator.
         """
-        with self as cassette:
-            return (yield from fn(cassette))
+        pass
 
     def _handle_function(self, fn):
-        with self as cassette:
-            return fn(cassette)
+        pass
 
     @staticmethod
     def get_function_name(function):
-        return function.__name__
+        pass
 
     def _build_args_getter_for_decorator(self, function):
-        def new_args_getter():
-            kwargs = self._args_getter()
-            if "path" not in kwargs:
-                name_generator = kwargs.get("func_path_generator") or self.get_function_name
-                path = name_generator(function)
-                kwargs["path"] = path
-            return kwargs
-
-        return new_args_getter
+        pass
 
 
 class Cassette:
@@ -153,9 +126,7 @@ class Cassette:
     @classmethod
     def load(cls, **kwargs):
         """Instantiate and load the cassette stored at the specified path."""
-        new_cassette = cls(**kwargs)
-        new_cassette._load()
-        return new_cassette
+        pass
 
     @classmethod
     def use_arg_getter(cls, arg_getter):
@@ -204,24 +175,24 @@ class Cassette:
 
     @property
     def play_count(self):
-        return sum(self.play_counts.values())
+        pass
 
     @property
     def all_played(self):
         """Returns True if all responses have been played, False otherwise."""
-        return len(self.play_counts.values()) == len(self)
+        pass
 
     @property
     def requests(self):
-        return [request for (request, response) in self.data]
+        pass
 
     @property
     def responses(self):
-        return [response for (request, response) in self.data]
+        pass
 
     @property
     def write_protected(self):
-        return (self.rewound and self.record_mode == RecordMode.ONCE) or self.record_mode == RecordMode.NONE
+        pass
 
     def append(self, request, response):
         """Add a request, response pair to this cassette"""
@@ -239,36 +210,24 @@ class Cassette:
         self.dirty = True
 
     def filter_request(self, request):
-        return self._before_record_request(request)
+        pass
 
     def _responses(self, request):
         """
         internal API, returns an iterator with all responses matching
         the request.
         """
-        request = self._before_record_request(request)
-        for index, (stored_request, response) in enumerate(self.data):
-            if requests_match(request, stored_request, self._match_on):
-                yield index, response
+        pass
 
     def can_play_response_for(self, request):
-        request = self._before_record_request(request)
-        return request and request in self and self.record_mode != RecordMode.ALL and self.rewound
+        pass
 
     def play_response(self, request):
         """
         Get the response corresponding to a request, but only if it
         hasn't been played back before, and mark it as played
         """
-        for index, response in self._responses(request):
-            if self.play_counts[index] == 0 or self.allow_playback_repeats:
-                self.play_counts[index] += 1
-                self._played_interactions.append((request, response))
-                return response
-        # The cassette doesn't contain the request asked for.
-        raise UnhandledHTTPRequestError(
-            f"The cassette ({self._path!r}) doesn't contain the request ({request!r}) asked for",
-        )
+        pass
 
     def responses_of(self, request):
         """
@@ -276,17 +235,10 @@ class Cassette:
         This function isn't actually used by VCR internally, but is
         provided as an external API.
         """
-        responses = [response for index, response in self._responses(request)]
-
-        if responses:
-            return responses
-        # The cassette doesn't contain the request asked for.
-        raise UnhandledHTTPRequestError(
-            f"The cassette ({self._path!r}) doesn't contain the request ({request!r}) asked for",
-        )
+        pass
 
     def rewind(self):
-        self.play_counts = collections.Counter()
+        pass
 
     def find_requests_with_most_matches(self, request):
         """
@@ -299,73 +251,23 @@ class Cassette:
         This is useful when a request failed to be found,
         we can get the similar request(s) in order to know what have changed in the request parts.
         """
-        best_matches = []
-        request = self._before_record_request(request)
-        for _, (stored_request, _) in enumerate(self.data):
-            successes, fails = get_matchers_results(request, stored_request, self._match_on)
-            best_matches.append((len(successes), stored_request, successes, fails))
-        best_matches.sort(key=lambda t: t[0], reverse=True)
-        # Get the first best matches (multiple if equal matches)
-        final_best_matches = []
-
-        if not best_matches:
-            return final_best_matches
-
-        previous_nb_success = best_matches[0][0]
-        for best_match in best_matches:
-            nb_success = best_match[0]
-            # Do not keep matches that have 0 successes,
-            # it means that the request is totally different from
-            # the ones stored in the cassette
-            if nb_success < 1 or previous_nb_success != nb_success:
-                break
-            previous_nb_success = nb_success
-            final_best_matches.append(best_match[1:])
-
-        return final_best_matches
+        pass
 
     def _new_interactions(self):
         """List of new HTTP interactions (request/response tuples)"""
-        new_interactions = []
-        for request, response in self.data:
-            if all(
-                not requests_match(request, old_request, self._match_on)
-                for old_request, _ in self._old_interactions
-            ):
-                new_interactions.append((request, response))
-        return new_interactions
+        pass
 
     def _as_dict(self):
-        return {"requests": self.requests, "responses": self.responses}
+        pass
 
     def _build_used_interactions_dict(self):
-        interactions = self._played_interactions + self._new_interactions()
-        cassete_dict = {
-            "requests": [request for request, _ in interactions],
-            "responses": [response for _, response in interactions],
-        }
-        return cassete_dict
+        pass
 
     def _save(self, force=False):
-        if self.drop_unused_requests and len(self._played_interactions) < len(self._old_interactions):
-            cassete_dict = self._build_used_interactions_dict()
-            force = True
-        else:
-            cassete_dict = self._as_dict()
-        if force or self.dirty:
-            self._persister.save_cassette(self._path, cassete_dict, serializer=self._serializer)
-            self.dirty = False
+        pass
 
     def _load(self):
-        try:
-            requests, responses = self._persister.load_cassette(self._path, serializer=self._serializer)
-            for request, response in zip(requests, responses, strict=False):
-                self.append(request, response)
-                self._old_interactions.append((request, response))
-            self.dirty = False
-            self.rewound = True
-        except (CassetteDecodeError, CassetteNotFoundError):
-            pass
+        pass
 
     def __str__(self):
         return f"<Cassette containing {len(self)} recorded response(s)>"

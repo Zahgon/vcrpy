@@ -35,80 +35,60 @@ class Request:
 
     @property
     def uri(self):
-        return self._uri
+        pass
 
     @uri.setter
     def uri(self, uri):
-        self._uri = uri
-        self.parsed_uri = urlparse(uri)
+        pass
 
     @property
     def headers(self):
-        return self._headers
+        pass
 
     @headers.setter
     def headers(self, value):
-        if not isinstance(value, HeadersDict):
-            value = HeadersDict(value)
-        self._headers = value
+        pass
 
     @property
     def body(self):
-        if self._was_file:
-            return BytesIO(self._body)
-        if self._was_iter:
-            return iter(self._body)
-        return self._body
+        pass
 
     @body.setter
     def body(self, value):
-        if isinstance(value, str):
-            value = value.encode("utf-8")
-        self._body = value
+        pass
 
     def add_header(self, key, value):
-        warnings.warn(
-            "Request.add_header is deprecated. Please assign to request.headers instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        self.headers[key] = value
+        pass
 
     @property
     def scheme(self):
-        return self.parsed_uri.scheme
+        pass
 
     @property
     def host(self):
-        return self.parsed_uri.hostname
+        pass
 
     @property
     def port(self):
-        port = self.parsed_uri.port
-        if port is None:
-            with suppress(KeyError):
-                port = {"https": 443, "http": 80}[self.parsed_uri.scheme]
-
-        return port
+        pass
 
     @property
     def path(self):
-        return self.parsed_uri.path
+        pass
 
     @property
     def query(self):
-        q = self.parsed_uri.query
-        return sorted(parse_qsl(q))
+        pass
 
     # alias for backwards compatibility
     @property
     def url(self):
-        return self.uri
+        pass
 
     # alias for backwards compatibility
     @property
     def protocol(self):
-        return self.scheme
+        pass
 
     def __str__(self):
         return f"<Request ({self.method}) {self.uri}>"
@@ -117,16 +97,11 @@ class Request:
         return self.__str__()
 
     def _to_dict(self):
-        return {
-            "method": self.method,
-            "uri": self.uri,
-            "body": self.body,
-            "headers": {k: [v] for k, v in self.headers.items()},
-        }
+        pass
 
     @classmethod
     def _from_dict(cls, dct):
-        return Request(**dct)
+        pass
 
 
 class HeadersDict(CaseInsensitiveDict):

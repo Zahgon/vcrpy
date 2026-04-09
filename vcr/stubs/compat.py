@@ -8,18 +8,15 @@ layer that tries to cope with this move.
 
 
 def get_header(message, name):
-    return message.getallmatchingheaders(name)
+    pass
 
 
 def get_header_items(message):
-    for key, values in get_headers(message):
-        for value in values:
-            yield key, value
+    pass
 
 
 def get_headers(message):
-    for key in set(message.keys()):
-        yield key, message.get_all(key)
+    pass
 
 
 def get_httpmessage(headers):

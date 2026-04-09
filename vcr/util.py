@@ -51,7 +51,7 @@ class CaseInsensitiveDict(MutableMapping):
 
     def lower_items(self):
         """Like iteritems(), but with all lowercase keys."""
-        return ((lowerkey, keyval[1]) for (lowerkey, keyval) in self._store.items())
+        pass
 
     def __eq__(self, other):
         if isinstance(other, Mapping):
@@ -63,71 +63,30 @@ class CaseInsensitiveDict(MutableMapping):
 
     # Copy is required
     def copy(self):
-        return CaseInsensitiveDict(self._store.values())
+        pass
 
     def __repr__(self):
         return str(dict(self.items()))
 
 
 def partition_dict(predicate, dictionary):
-    true_dict = {}
-    false_dict = {}
-    for key, value in dictionary.items():
-        this_dict = true_dict if predicate(key, value) else false_dict
-        this_dict[key] = value
-    return true_dict, false_dict
+    pass
 
 
 def compose(*functions):
     def composed(incoming):
-        res = incoming
-        for function in reversed(functions):
-            if function:
-                res = function(res)
-        return res
+        pass
 
     return composed
 
 
 def _is_nonsequence_iterator(obj):
-    return hasattr(obj, "__iter__") and not isinstance(
-        obj,
-        (bytearray, bytes, dict, list, str),
-    )
+    pass
 
 
 def read_body(request):
-    if hasattr(request.body, "read"):
-        return request.body.read()
-    if _is_nonsequence_iterator(request.body):
-        body = list(request.body)
-        if body:
-            if isinstance(body[0], str):
-                return "".join(body).encode("utf-8")
-            elif isinstance(body[0], (bytes, bytearray)):
-                return b"".join(body)
-            elif isinstance(body[0], int):
-                return bytes(body)
-            else:
-                raise ValueError(f"Body type {type(body[0])} not supported")
-        return b""
-    return request.body
+    pass
 
 
 def auto_decorate(decorator, predicate=lambda name, value: isinstance(value, types.FunctionType)):
-    def maybe_decorate(attribute, value):
-        if predicate(attribute, value):
-            value = decorator(value)
-        return value
-
-    class DecorateAll(type):
-        def __setattr__(cls, attribute, value):
-            return super().__setattr__(attribute, maybe_decorate(attribute, value))
-
-        def __new__(cls, name, bases, attributes_dict):
-            new_attributes_dict = {
-                attribute: maybe_decorate(attribute, value) for attribute, value in attributes_dict.items()
-            }
-            return super().__new__(cls, name, bases, new_attributes_dict)
-
-    return DecorateAll
+    pass

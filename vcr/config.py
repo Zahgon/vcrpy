@@ -17,14 +17,12 @@ from .util import auto_decorate, compose
 class VCR:
     @staticmethod
     def is_test_method(method_name, function):
-        return method_name.startswith("test") and isinstance(function, types.FunctionType)
+        pass
 
     @staticmethod
     def ensure_suffix(suffix):
         def ensure(path):
-            if not path.endswith(suffix):
-                return path + suffix
-            return path
+            pass
 
         return ensure
 
@@ -130,9 +128,7 @@ class VCR:
         if cassette_library_dir:
 
             def add_cassette_library_dir(path):
-                if not path.startswith(cassette_library_dir):
-                    return os.path.join(cassette_library_dir, path)
-                return path
+                pass
 
             path_transformer = compose(add_cassette_library_dir, path_transformer)
         elif not func_path_generator:
@@ -175,11 +171,7 @@ class VCR:
             filter_functions.extend(before_record_response)
 
         def before_record_response(response):
-            for function in filter_functions:
-                if response is None:
-                    break
-                response = function(response)
-            return response
+            pass
 
         return before_record_response
 
@@ -223,39 +215,30 @@ class VCR:
             filter_functions.extend(before_record_request)
 
         def before_record_request(request):
-            request = copy.deepcopy(request)
-            for function in filter_functions:
-                if request is None:
-                    break
-                request = function(request)
-            return request
+            pass
 
         return before_record_request
 
     @staticmethod
     def _build_ignore_hosts(hosts_to_ignore):
         def filter_ignored_hosts(request):
-            if hasattr(request, "host") and request.host in hosts_to_ignore:
-                return
-            return request
+            pass
 
         return filter_ignored_hosts
 
     @staticmethod
     def _build_path_from_func_using_module(function):
-        return os.path.join(os.path.dirname(inspect.getfile(function)), function.__name__)
+        pass
 
     def register_serializer(self, name, serializer):
-        self.serializers[name] = serializer
+        pass
 
     def register_matcher(self, name, matcher):
-        self.matchers[name] = matcher
+        pass
 
     def register_persister(self, persister):
         # Singleton, no name required
-        self.persister = persister
+        pass
 
     def test_case(self, predicate=None):
-        predicate = predicate or self.is_test_method
-        metaclass = auto_decorate(self.use_cassette, predicate)
-        return metaclass("temporary_class", (), {})
+        pass

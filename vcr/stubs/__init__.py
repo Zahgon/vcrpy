@@ -32,7 +32,7 @@ class VCRFakeSocket:
         this descriptor and make sure it's not closed.
         Return file descriptor 0 since that's stdin.
         """
-        return 0  # wonder how bad this is....
+        pass
 
 
 def parse_headers(header_list):
@@ -48,12 +48,7 @@ def parse_headers(header_list):
 
 
 def serialize_headers(response):
-    headers = response.headers if response.msg is None else response.msg
-    out = {}
-    for key, values in compat.get_headers(headers):
-        out.setdefault(key, [])
-        out[key].extend(values)
-    return out
+    pass
 
 
 class VCRHTTPResponse(HTTPResponse):
@@ -90,34 +85,34 @@ class VCRHTTPResponse(HTTPResponse):
         # in python3, I can't change the value of self.closed.  So I'
         # twiddling self._closed and using this property to shadow the real
         # self.closed from the superclass
-        return self._closed
+        pass
 
     def read(self, *args, **kwargs):
         return self._content.read(*args, **kwargs)
 
     def read1(self, *args, **kwargs):
-        return self._content.read1(*args, **kwargs)
+        pass
 
     def readall(self):
-        return self._content.readall()
+        pass
 
     def readinto(self, *args, **kwargs):
-        return self._content.readinto(*args, **kwargs)
+        pass
 
     def readline(self, *args, **kwargs):
-        return self._content.readline(*args, **kwargs)
+        pass
 
     def readlines(self, *args, **kwargs):
-        return self._content.readlines(*args, **kwargs)
+        pass
 
     def seekable(self):
-        return self._content.seekable()
+        pass
 
     def tell(self):
-        return self._content.tell()
+        pass
 
     def isatty(self):
-        return self._content.isatty()
+        pass
 
     def seek(self, *args, **kwargs):
         return self._content.seek(*args, **kwargs)
@@ -127,32 +122,26 @@ class VCRHTTPResponse(HTTPResponse):
         return True
 
     def getcode(self):
-        return self.status
+        pass
 
     def isclosed(self):
-        return self.closed
+        pass
 
     def info(self):
         return parse_headers(self.recorded_response["headers"])
 
     def getheaders(self):
-        message = parse_headers(self.recorded_response["headers"])
-        return list(compat.get_header_items(message))
+        pass
 
     def getheader(self, header, default=None):
-        values = [v for (k, v) in self.getheaders() if k.lower() == header.lower()]
-
-        if values:
-            return ", ".join(values)
-        else:
-            return default
+        pass
 
     def readable(self):
-        return self._content.readable()
+        pass
 
     @property
     def length_remaining(self):
-        return self._content.getbuffer().nbytes - self._content.tell()
+        pass
 
     def get_redirect_location(self):
         """
@@ -161,23 +150,17 @@ class VCRHTTPResponse(HTTPResponse):
         no location, (c) False if not a redirect status code.
         See https://urllib3.readthedocs.io/en/stable/reference/urllib3.response.html .
         """
-        if not (300 <= self.status <= 399):
-            return False
-        return self.getheader("Location")
+        pass
 
     @property
     def data(self):
-        return self._content.getbuffer().tobytes()
+        pass
 
     def drain_conn(self):
         pass
 
     def stream(self, amt=65536, decode_content=None):
-        while True:
-            b = self._content.read(amt)
-            yield b
-            if not b:
-                break
+        pass
 
 
 class VCRConnection:
@@ -215,8 +198,7 @@ class VCRConnection:
 
     def _url(self, uri):
         """Returns request selector url from absolute URI"""
-        prefix = f"{self._protocol}://{self._real_host()}{self._port_postfix()}"
-        return uri.replace(prefix, "", 1)
+        pass
 
     def request(self, method, url, body=None, headers=None, *args, **kwargs):
         """Persist the request metadata in self._vcr_request"""
@@ -236,11 +218,10 @@ class VCRConnection:
         to start building up a request.  Usually followed by a bunch
         of putheader() calls.
         """
-        self._vcr_request = Request(method=method, uri=self._uri(url), body="", headers={})
-        log.debug(f"Got {self._vcr_request}")
+        pass
 
     def putheader(self, header, *values):
-        self._vcr_request.headers[header] = values
+        pass
 
     def send(self, data):
         """
@@ -248,7 +229,7 @@ class VCRConnection:
         body of the request.  So if that happens, let's just append the data
         onto the most recent request in the cassette.
         """
-        self._vcr_request.body = self._vcr_request.body + data if self._vcr_request.body else data
+        pass
 
     def close(self):
         # Note: the real connection will only close if it's open, so
@@ -261,55 +242,14 @@ class VCRConnection:
         We are not sending the request until getting the response,
         so bypass this part and just append the message body, if any.
         """
-        if message_body is not None:
-            self._vcr_request.body = message_body
+        pass
 
     def getresponse(self, _=False, **kwargs):
         """Retrieve the response"""
-        # Check to see if the cassette has a response for this request. If so,
-        # then return it
-        if self.cassette.can_play_response_for(self._vcr_request):
-            log.info(f"Playing response for {self._vcr_request} from cassette")
-            response = self.cassette.play_response(self._vcr_request)
-            return VCRHTTPResponse(response)
-        else:
-            if self.cassette.write_protected and self.cassette.filter_request(self._vcr_request):
-                raise CannotOverwriteExistingCassetteException(
-                    cassette=self.cassette,
-                    failed_request=self._vcr_request,
-                )
-
-            # Otherwise, we should send the request, then get the response
-            # and return it.
-
-            log.info(f"{self._vcr_request} not in cassette, sending to real server")
-            # This is imported here to avoid circular import.
-            # TODO(@IvanMalison): Refactor to allow normal import.
-            from vcr.patch import force_reset
-
-            with force_reset():
-                self.real_connection.request(
-                    method=self._vcr_request.method,
-                    url=self._url(self._vcr_request.uri),
-                    body=self._vcr_request.body,
-                    headers=self._vcr_request.headers,
-                )
-
-            # get the response
-            response = self.real_connection.getresponse()
-            response_data = response.data if hasattr(response, "data") else response.read()
-
-            # put the response into the cassette
-            response = {
-                "status": {"code": response.status, "message": response.reason},
-                "headers": serialize_headers(response),
-                "body": {"string": response_data},
-            }
-            self.cassette.append(self._vcr_request, response)
-        return VCRHTTPResponse(response)
+        pass
 
     def set_debuglevel(self, *args, **kwargs):
-        self.real_connection.set_debuglevel(*args, **kwargs)
+        pass
 
     def connect(self, *args, **kwargs):
         """
@@ -318,33 +258,15 @@ class VCRConnection:
         Only pass to the baseclass if we don't have a recorded response
         and are not write-protected.
         """
-
-        if hasattr(self, "_vcr_request") and self.cassette.can_play_response_for(self._vcr_request):
-            # We already have a response we are going to play, don't
-            # actually connect
-            return
-
-        if self.cassette.write_protected:
-            # Cassette is write-protected, don't actually connect
-            return
-
-        from vcr.patch import force_reset
-
-        with force_reset():
-            return self.real_connection.connect(*args, **kwargs)
-
-        self._sock = VCRFakeSocket()
+        pass
 
     @property
     def sock(self):
-        if self.real_connection.sock:
-            return self.real_connection.sock
-        return self._sock
+        pass
 
     @sock.setter
     def sock(self, value):
-        if self.real_connection.sock:
-            self.real_connection.sock = value
+        pass
 
     def __init__(self, *args, **kwargs):
         kwargs.pop("strict", None)  # apparently this is gone in py3

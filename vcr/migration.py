@@ -38,80 +38,34 @@ def preprocess_yaml(cassette):
     # tag system.  This made it difficult to deserialize old cassettes on new
     # versions.  So this just strips the tags before deserializing.
 
-    STRINGS_TO_NUKE = [
-        "!!python/object:vcr.request.Request",
-        "!!python/object/apply:__builtin__.frozenset",
-        "!!python/object/apply:builtins.frozenset",
-    ]
-    for s in STRINGS_TO_NUKE:
-        cassette = cassette.replace(s, "")
-    return cassette
+    pass
 
 
 PARTS = ["protocol", "host", "port", "path"]
 
 
 def build_uri(**parts):
-    port = parts["port"]
-    scheme = parts["protocol"]
-    default_port = {"https": 443, "http": 80}[scheme]
-    parts["port"] = f":{port}" if port != default_port else ""
-    return "{protocol}://{host}{port}{path}".format(**parts)
+    pass
 
 
 def _migrate(data):
-    interactions = []
-    for item in data:
-        req = item["request"]
-        res = item["response"]
-        uri = {k: req.pop(k) for k in PARTS}
-        req["uri"] = build_uri(**uri)
-        # convert headers to dict of lists
-        headers = req["headers"]
-        for k in headers:
-            headers[k] = [headers[k]]
-        response_headers = {}
-        for k, v in get_httpmessage(b"".join(h.encode("utf-8") for h in res["headers"])).items():
-            response_headers.setdefault(k, [])
-            response_headers[k].append(v)
-        res["headers"] = response_headers
-        interactions.append({"request": req, "response": res})
-    return {
-        "requests": [request.Request._from_dict(i["request"]) for i in interactions],
-        "responses": [i["response"] for i in interactions],
-    }
+    pass
 
 
 def migrate_json(in_fp, out_fp):
-    data = json.load(in_fp)
-    if _already_migrated(data):
-        return False
-    interactions = _migrate(data)
-    out_fp.write(serialize(interactions, jsonserializer))
-    return True
+    pass
 
 
 def _list_of_tuples_to_dict(fs):
-    return dict(fs[0])
+    pass
 
 
 def _already_migrated(data):
-    try:
-        if data.get("version") == 1:
-            return True
-    except AttributeError:
-        return False
+    pass
 
 
 def migrate_yml(in_fp, out_fp):
-    data = yaml.load(preprocess_yaml(in_fp.read()), Loader=Loader)
-    if _already_migrated(data):
-        return False
-    for i in range(len(data)):
-        data[i]["request"]["headers"] = _list_of_tuples_to_dict(data[i]["request"]["headers"])
-    interactions = _migrate(data)
-    out_fp.write(serialize(interactions, yamlserializer))
-    return True
+    pass
 
 
 def migrate(file_path, migration_fn):

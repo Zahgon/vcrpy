@@ -9,8 +9,8 @@ except ImportError:
 
 
 def deserialize(cassette_string):
-    return yaml.load(cassette_string, Loader=Loader)
+    pass
 
 
 def serialize(cassette_dict):
-    return yaml.dump(cassette_dict, Dumper=Dumper)
+    pass
